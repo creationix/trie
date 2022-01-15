@@ -38,7 +38,7 @@ fn trieWalk(comptime T: type, comptime H: type, trie: []const T, key: H) !T {
         if ((pointer & highBit) == 0) return pointer & ptrMask;
 
         // Follow the pointer, but ignore the bottom bit.
-        trieOffset += pointer & ptrMask;
+        trieOffset += @intCast(usize, pointer & ptrMask);
         if (trieOffset >= trie.len) return error.OutOfRange;
     }
 }
@@ -134,6 +134,7 @@ test "64 bit sizes" {
 // Calculate number of bits needed to shift a given integer size
 fn log2BitsSizeOf(comptime T: type) comptime_int {
     var s = @bitSizeOf(T);
+    std.debug.assert(@popCount(u16, s) == 1); // Must be power of 2
     var bits = 0;
     while (s > 1) {
         s >>= 1;
@@ -146,4 +147,40 @@ fn log2BitsSizeOf(comptime T: type) comptime_int {
 const TypeInfo = @import("std").builtin.TypeInfo;
 fn U(comptime numBits: comptime_int) type {
     return @Type(TypeInfo{ .Int = TypeInfo.Int{ .signedness = .unsigned, .bits = numBits } });
+}
+
+export fn trieWalk8(trie: [*]u8, len: usize, key: u64) i8 {
+    if (trieWalk(u8, u64, trie[0..len], key)) |num| {
+        return @intCast(i8, num);
+    } else |err| return switch (err) {
+        error.NotFound => -1,
+        error.OutOfRange => -2,
+    };
+}
+
+export fn trieWalk16(trie: [*]u16, len: usize, key: u64) i16 {
+    if (trieWalk(u16, u64, trie[0..len], key)) |num| {
+        return @intCast(i16, num);
+    } else |err| return switch (err) {
+        error.NotFound => -1,
+        error.OutOfRange => -2,
+    };
+}
+
+export fn trieWalk32(trie: [*]u32, len: usize, key: u64) i32 {
+    if (trieWalk(u32, u64, trie[0..len], key)) |num| {
+        return @intCast(i32, num);
+    } else |err| return switch (err) {
+        error.NotFound => -1,
+        error.OutOfRange => -2,
+    };
+}
+
+export fn trieWalk64(trie: [*]u64, len: usize, key: u64) i64 {
+    if (trieWalk(u64, u64, trie[0..len], key)) |num| {
+        return @intCast(i64, num);
+    } else |err| return switch (err) {
+        error.NotFound => -1,
+        error.OutOfRange => -2,
+    };
 }
