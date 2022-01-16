@@ -2,3 +2,9 @@
 /*.so
 /*.wasm
 
+
+
+# Added by cargo
+
+/target
+Cargo.lock
